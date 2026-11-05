@@ -1,0 +1,6 @@
+.env
+playmate.zip
+node_modules/
+dist/
+release/
+*.zip
