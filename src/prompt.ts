@@ -221,7 +221,9 @@ export function tickLine(s: Status, quietS: number): string {
   return `[${Math.round(quietS)} s quiet; ${statusBits(s)}${s.note ? `; ${s.note}` : ''}${wind}]`
 }
 
-export const openingLine = (s: Status) => `[session starts; ${statusBits(s)}. Greet the user and start slowly.]`
+export const openingLine = (s: Status) => s.video
+  ? `[session starts; ${statusBits(s)}. He already has a video on: greet him and talk over it, no movement tags while it plays.]`
+  : `[session starts; ${statusBits(s)}. Greet the user and start slowly.]`
 /** A video she started is about to change pace, or has ended. */
 export const videoEventLine = (s: Status, what: string) => `[${what}; ${statusBits(s)}${s.note ? `; ${s.note}` : ''}]`
 

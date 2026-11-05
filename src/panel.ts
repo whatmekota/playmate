@@ -544,7 +544,7 @@ function chatView(root: HTMLElement, pm: Playmate, ctx: PluginContext, toPrompts
         speed.bar.style.width = `${Math.round(sc.level * 100)}%`
       }
       const next = sc?.next ? ` · ${sc.next.kind === 'harder' ? 'harder' : 'easier'} in ${sc.next.inS} s` : ''
-      motionNote.textContent = `▶ ${pm.videoTitle} · the script drives${next}`
+      motionNote.textContent = `▶ ${pm.currentVideoTitle()} · the script drives${next}`
     }
   }
 

@@ -49,3 +49,17 @@ test('without a video they go through', () => {
   assert.equal(sets.length, 1)
   pm.dispose()
 })
+
+test('a scripted video he put on himself counts too, and pausing it gives the device back', () => {
+  const player = { playing: true, hasScript: true, title: 'his.mp4' }
+  const { ctx, sets } = fakeCtx(player)
+  const pm = new Playmate(ctx, { tickMs: 1e9 })
+  pm.control = ctx.motion.take()
+  assert.equal(pm.apply([{ kind: 'speed', value: 90 }]), 'video')
+  assert.equal(sets.length, 0)
+  assert.equal(pm.currentVideoTitle(), 'his')
+  player.playing = false
+  assert.equal(pm.apply([{ kind: 'speed', value: 90 }]), null)
+  assert.equal(sets.length, 1)
+  pm.dispose()
+})

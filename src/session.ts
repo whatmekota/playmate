@@ -204,7 +204,7 @@ export class Playmate {
       elapsedMin: this.running ? (now - this.startedAt) / 60000 : 0,
       sessionMin: this.sessionMin(),
       lead: s.lead,
-      video: this.videoPlaying() ? { title: this.videoTitle, script: this.ctx.player.script?.() ?? null } : null,
+      video: this.videoPlaying() ? { title: this.currentVideoTitle(), script: this.ctx.player.script?.() ?? null } : null,
       note: this.takePlayNote(),
     }
   }
@@ -258,12 +258,24 @@ export class Playmate {
     return n
   }
 
-  /** A video she put on is playing with its script (so the device follows it, not her). */
+  /**
+   * A scripted video is playing, whoever put it on: its script drives the
+   * device then, not her. (Paused, the generator has the device again.)
+   */
   videoPlaying(): boolean {
-    if (!this.videoId)
-      return false
     const p = this.ctx.player.state()
-    return p.playing && p.hasScript && p.title === this.videoId
+    return p.playing && p.hasScript && !!p.title
+  }
+
+  /** The video she put on is the one playing. */
+  private herVideoPlaying(): boolean {
+    return !!this.videoId && this.videoPlaying() && this.ctx.player.state().title === this.videoId
+  }
+
+  /** The playing video's title: hers as she knows it, else the file name without its extension. */
+  currentVideoTitle(): string {
+    const t = this.ctx.player.state().title ?? ''
+    return this.videoId && t === this.videoId ? this.videoTitle : t.replace(/\.[^.]+$/, '')
   }
 
   /** Read the library and give her its overview; scripts not measured yet get analysed in the background. */
@@ -569,7 +581,8 @@ export class Playmate {
     }
     catch {}
     this.control = null
-    if (this.videoPlaying())
+    // Only her own video stops with the session; one he put on keeps playing.
+    if (this.herVideoPlaying())
       this.ctx.playback.pause()
     this.videoId = null
     this.videoTitle = ''
