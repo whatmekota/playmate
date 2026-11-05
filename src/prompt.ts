@@ -207,7 +207,7 @@ export function statusBits(s: Status): string {
     const now = sc ? `its script goes ${sc.spm}/min now (${sc.level >= 0.66 ? 'a hard part' : sc.level >= 0.33 ? 'a middling part' : 'a gentle part'})` : 'its script is running'
     const next = sc?.next ? `; ${sc.next.kind === 'harder' ? 'it gets harder' : 'it eases off'} in ${sc.next.inS} s (to ${sc.next.spm}/min)` : ''
     const end = sc ? `; the video ends in ${mmss(sc.endsInS)}` : ''
-    return `${playing}; the device follows the video's script, not you: ${now}${next}${end}; ${time}; ${s.device ? 'device connected' : 'no device connected'}`
+    return `${playing}; the device follows the video's script, not you, so send no movement tags now (they're ignored), just talk: ${now}${next}${end}; ${time}; ${s.device ? 'device connected' : 'no device connected'}`
   }
   return `${playing}; ${motion}; ${time}; ${device}`
 }

@@ -50,6 +50,8 @@ export const CSS = `
 .pm-mv[data-kind=play] { color: var(--text); background: color-mix(in srgb, var(--info) 18%, transparent); border-color: color-mix(in srgb, var(--info) 45%, transparent); }
 .pm-mv[data-kind=stop] { color: var(--text-muted); background: var(--bg-700); border-color: var(--border-strong); }
 .pm-mv[data-lost] { opacity: .45; text-decoration: line-through; box-shadow: none; }
+/* Held back while the video's script drives: faded, no strike-through (nothing went wrong). */
+.pm-mv[data-lost=video] { opacity: .38; text-decoration: none; filter: grayscale(.6); }
 
 .pm-mic { width: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); touch-action: none; user-select: none; }
 .pm-mic:hover { color: var(--text); }

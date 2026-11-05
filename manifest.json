@@ -1,7 +1,7 @@
 {
   "id": "playmate",
   "name": "playmate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An AI partner that talks to you in a voice and drives the stroker, or leads a whole session by itself.",
   "main": "index.js"
 }

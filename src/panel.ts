@@ -161,12 +161,15 @@ function depthBar(pct: number): HTMLElement {
  * a position dot, a stroke shape, edge and stop. Hotter the closer the speed
  * is to her top speed.
  */
-function moveEl(label: string, lost: boolean, top: number): HTMLElement {
+function moveEl(label: string, held: 'lost' | 'video' | null, top: number): HTMLElement {
+  const lost = !!held
   const v = label.toLowerCase().trim()
   const el = h('span', { class: 'pm-mv', title: label })
-  if (lost) {
-    el.dataset.lost = ''
-    el.title = `${label}: not applied, no control of the device`
+  if (held) {
+    el.dataset.lost = held
+    el.title = held === 'video'
+      ? `${label}: not applied, the video's script drives the device`
+      : `${label}: not applied, no control of the device`
   }
   const num = (re: RegExp) => {
     const m = v.match(re)
@@ -584,8 +587,8 @@ function chatView(root: HTMLElement, pm: Playmate, ctx: PluginContext, toPrompts
       if (p.t === 'chip' && p.kind === 'sound') {
         div.append(sfxEl(p.v), ' ')
       }
-      else if (p.t === 'chip' && (p.kind === 'move' || p.kind === 'lost')) {
-        div.append(moveEl(p.v, p.kind === 'lost', top), ' ')
+      else if (p.t === 'chip' && (p.kind === 'move' || p.kind === 'lost' || p.kind === 'video')) {
+        div.append(moveEl(p.v, p.kind === 'move' ? null : p.kind, top), ' ')
       }
       else if (p.t !== 'chip' && heat && e.who !== 'you') {
         div.append(heatEl(p.v, heat), ' ')

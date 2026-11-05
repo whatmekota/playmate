@@ -40,7 +40,11 @@ function fnv(text: string): string {
 import { SentenceSplitter } from './splitter'
 import { applyMoves, clamp } from './tags'
 
-export type ChipKind = 'move' | 'unknown' | 'lost' | 'sound'
+/** 'lost': not applied, no control of the device; 'video': not applied, her video's script drives it. */
+export type ChipKind = 'move' | 'unknown' | 'lost' | 'video' | 'sound'
+
+/** Tags that still do something while a video plays or without device control. */
+const ALWAYS_TAGS = /^(?:play|video|pick|more|extend|longer|prolong|end)\b/i
 export type Part = { t: 'text', v: string } | { t: 'chip', v: string, kind: ChipKind }
 
 export interface LogEntry {
@@ -815,9 +819,9 @@ export class Playmate {
     item.begun = true
     if (item.gen !== this.turnGen)
       return
-    const lost = item.moves.length ? this.apply(item.moves) : false
+    const held = item.moves.length ? this.apply(item.moves) : null
     for (const c of item.chips)
-      item.entry.parts.push({ t: 'chip', v: c.label, kind: c.kind === 'move' ? (lost ? 'lost' : 'move') : c.kind === 'sound' ? 'sound' : 'unknown' })
+      item.entry.parts.push({ t: 'chip', v: c.label, kind: c.kind === 'move' ? (held && !ALWAYS_TAGS.test(c.label) ? held : 'move') : c.kind === 'sound' ? 'sound' : 'unknown' })
     if (item.text)
       item.entry.parts.push({ t: 'text', v: item.text })
     this.emit()
@@ -826,13 +830,20 @@ export class Playmate {
   // ─── Motion ───────────────────────────────────────────────────────────────
 
   /** Apply moves to the device; returns true when they went nowhere (no control, or the safe word holds). */
-  apply(moves: Move[]): boolean {
+  /** Apply moves; returns why movement didn't reach the device ('lost', 'video'), or null when it did. */
+  apply(moves: Move[]): 'lost' | 'video' | null {
     if (this.safeHold) {
       // Only [end] still counts.
       if (moves.some(m => m.kind === 'end'))
         this.endAfter = true
-      return true
+      return 'lost'
     }
+    // While her video plays, its script has the device: movement waits, and
+    // doesn't pile up for when the video ends either. Putting on another
+    // video, more time and the end still count.
+    const playing = this.videoPlaying()
+    if (playing)
+      moves = moves.filter(m => m.kind === 'play' || m.kind === 'more' || m.kind === 'end')
     const r = applyMoves(this.motion, moves, this.limits())
     this.motion = r.state
     if (r.moreMin)
@@ -850,7 +861,9 @@ export class Playmate {
     if (r.changed && !scripted)
       this.pushMotion()
     this.emit()
-    return !this.control?.active
+    if (playing)
+      return 'video'
+    return this.control?.active ? null : 'lost'
   }
 
   /** This session's length in minutes: the setting plus what the chat added. */
