@@ -1,12 +1,12 @@
 {
   "name": "playmate",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
     "build:public": "node build.mjs --public --minify",
-    "test": "node --import tsx --test test/tags.test.ts test/splitter.test.ts test/brain.test.ts test/library.test.ts test/session.test.ts",
+    "test": "node --import tsx --test test/tags.test.ts test/splitter.test.ts test/brain.test.ts test/library.test.ts test/session.test.ts test/scope.test.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

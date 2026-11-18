@@ -1,7 +1,16 @@
 {
   "id": "playmate",
   "name": "playmate",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "An AI partner that talks to you in a voice and drives the stroker, or leads a whole session by itself.",
-  "main": "index.js"
+  "main": "index.js",
+  "api": 7,
+  "permissions": [
+    "device",
+    "player",
+    "playback",
+    "library",
+    "network"
+  ],
+  "minPlayhound": "2.2.8"
 }

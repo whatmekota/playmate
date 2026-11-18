@@ -6,8 +6,31 @@ import type { PluginContext } from './types'
  * (like playhound's Motion panel), and under it her voice as a waveform in
  * a pinkish grey, full height, which only fills in while she talks. Both
  * scroll at the same rate.
+ *
+ * The stroke is drawn from every position playhound sends (motion.onAxis),
+ * each at the moment it was sent, so the line is the stroke as sent rather
+ * than what a frame happened to catch. It is the stroke as meant, before
+ * the user's range and invert: 0 is the bottom whatever the device is set to.
  */
 const WINDOW_MS = 6000
+/** No new position for this long: nothing moves the stroke, and the line runs flat. */
+export const IDLE_MS = 100
+
+export interface Sample { t: number, p: number }
+
+/**
+ * Bring the trace up to `now` (ms): after an idle spell, a point at `now`
+ * where the stroke was last sent, so the line runs flat to the right edge
+ * (`pos` gives the first point, before anything was sent); and nothing
+ * older than the window.
+ */
+export function advance(samples: Sample[], now: number, pos: () => number): void {
+  const last = samples.at(-1)
+  if (!last || now - last.t >= IDLE_MS)
+    samples.push({ t: now, p: last ? last.p : pos() })
+  while (samples.length && now - samples[0].t > WINDOW_MS)
+    samples.shift()
+}
 
 export function scope(pm: Playmate, ctx: PluginContext): { el: HTMLElement, stop: () => void } {
   const trace = document.createElement('canvas')
@@ -20,7 +43,11 @@ export function scope(pm: Playmate, ctx: PluginContext): { el: HTMLElement, stop
   el.setAttribute('aria-hidden', 'true')
   el.append(trace, spec)
 
-  const samples: { t: number, p: number }[] = []
+  const samples: Sample[] = []
+  const offAxis = ctx.motion.onAxis((axis, p) => {
+    if (axis === 'L0')
+      samples.push({ t: performance.now(), p })
+  })
   let colors = { accent: '#d946ef', grid: 'rgba(255,255,255,.07)', voice: [190, 150, 200] as number[] }
   let wave: Float32Array<ArrayBuffer> | null = null
   let raf = 0
@@ -152,9 +179,7 @@ export function scope(pm: Playmate, ctx: PluginContext): { el: HTMLElement, stop
   function tick(now: number) {
     const dt = lastT ? Math.min(250, now - lastT) : 0
     lastT = now
-    samples.push({ t: now, p: ctx.motion.readout().pos })
-    while (samples.length && now - samples[0].t > WINDOW_MS)
-      samples.shift()
+    advance(samples, now, () => ctx.motion.axes().L0 ?? ctx.motion.readout().pos)
     if (frame++ % 30 === 0)
       readColors()
     drawTrace(now)
@@ -165,7 +190,10 @@ export function scope(pm: Playmate, ctx: PluginContext): { el: HTMLElement, stop
 
   return {
     el,
-    stop: () => cancelAnimationFrame(raf),
+    stop: () => {
+      cancelAnimationFrame(raf)
+      offAxis()
+    },
   }
 }
 

@@ -5,6 +5,7 @@ import type { Sentence } from './splitter'
 import type { Limits, Move, MotionState } from './tags'
 import type { MotionControl, PluginContext } from './types'
 import { Speaker } from './audio'
+import { Awards } from './awards'
 import { Ears } from './ears'
 import { libraryOverview, parseQuery, resolveQuery } from './library'
 import { Cancelled, ChatBrain, NoVision } from './brain'
@@ -106,6 +107,8 @@ export class Playmate {
   chars: Character[] = clone(DEFAULT_CHARACTERS)
 
   readonly speaker = new Speaker()
+  /** Her achievements in playhound's Stats. */
+  readonly awards: Awards
   /** Push-to-talk: what you say goes in as if typed; starting to talk cuts her off. */
   readonly ears: Ears
   private nextId = 1
@@ -125,6 +128,8 @@ export class Playmate {
   private emitQueued = false
 
   constructor(private ctx: PluginContext, opts: { tickMs?: number } = {}) {
+    this.awards = new Awards(ctx)
+    this.awards.define()
     this.tickTimer = setInterval(() => this.tick(), opts.tickMs ?? 1000)
     // Older playhound builds have no playback API: then she just can't put videos on.
     ctx.playback?.onEnded?.(id => this.onVideoEnded(id))
@@ -139,7 +144,10 @@ export class Playmate {
         this.lastActivity = Date.now()
         this.emit()
       },
-      text => this.send(text),
+      (text) => {
+        this.awards.unlock('out-loud')
+        this.send(text)
+      },
       ctx.log,
     )
   }
@@ -343,6 +351,7 @@ export class Playmate {
     this.videoTitle = v.title
     this.played.add(v.id)
     this.lastVideoNudge = Date.now()
+    this.awards.unlock('her-pick')
     this.playNote = `your [play ${raw}] put on "${v.title}"${v.intensity ? ` (${v.intensity.band})` : ''}${v.finishes ? `, one he came to ${v.finishes}× before` : ''}`
     this.sys(`▶ ${v.title}`)
   }
@@ -543,6 +552,7 @@ export class Playmate {
       this.ctx.log('no audio context', e)
     }
     this.sys(`Session started with ${this.character().name}${s.lead ? `, leading for ${s.sessionMinutes} min` : ''}`)
+    this.awards.unlock('first-session')
     this.take()
     void this.refreshVoice()
     // Her video list first (if she may pick), so the opening already knows it.
@@ -915,6 +925,7 @@ export class Playmate {
     const ms = this.settings().edgeSeconds * 1000
     this.clearEdge()
     this.edgeUntil = Date.now() + ms
+    void this.awards.count('edges')
     this.edgeTimer = setTimeout(() => {
       this.edgeTimer = null
       this.edgeUntil = 0
@@ -942,6 +953,7 @@ export class Playmate {
         return
       this.finalSent = true
       this.endAfter = true
+      this.awards.unlock('all-the-way')
       void this.turn(finalLine(this.status()))
       return
     }
@@ -949,14 +961,16 @@ export class Playmate {
       return
     const quiet = (now - this.lastActivity) / 1000
     if (this.videoPlaying()) {
-      // Talk over the video: ahead of a harder part, and now and then.
+      // Talk over the video: ahead of a harder part, and now and then; half
+      // as often while its own sound is heard, to leave it room.
       const sc = this.ctx.player.script?.() ?? null
       if (sc?.next?.kind === 'harder' && sc.next.inS <= 6 && now - this.lastVideoNudge > 20_000) {
         this.lastVideoNudge = now
         void this.turn(videoEventLine(this.status(), `a harder part starts in ${sc.next.inS} s`))
         return
       }
-      if (quiet >= s.quietSeconds * 1.5 && now - this.lastVideoNudge > s.quietSeconds * 1000) {
+      const f = this.ctx.player.state().audible ? 2 : 1
+      if (quiet >= s.quietSeconds * 1.5 * f && now - this.lastVideoNudge > s.quietSeconds * 1000 * f) {
         this.lastVideoNudge = now
         void this.turn(tickLine(this.status(), quiet))
       }

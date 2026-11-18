@@ -2,13 +2,15 @@
 
 **18+ only.** An AI partner plugin for [playhound](https://github.com/whatmekota/playhound). She talks to you in a voice, drives your stroker through the conversation, and can run a whole session by herself: putting on scripted videos from your library, talking over them, and taking the motion back when they end.
 
-Needs playhound **1.5.0** or newer (the desktop app; some parts need it to reach local servers).
+Needs playhound **2.2.8** or newer (the desktop app; some parts need it to reach local servers).
 
 ## Install
 
 In playhound: **Settings → Plugins**. playmate is in the plugin list there: click **Install**, then switch it on. To install by hand, download `playmate-<version>.zip` from [Releases](https://github.com/whatmekota/playmate/releases) and drop it on that page.
 
 Then open its panel (the Plugins drawer on the right), and set it up in Settings → Plugins → playmate.
+
+It asks to move your device (the stroke generator), see what plays (the video, its script, and a snapshot when you let her see it), play and pause videos and read your library (for **Let her pick videos**), and connect to servers (the brain, the voice and the speech input you set up).
 
 ## What it needs
 
@@ -38,7 +40,7 @@ Everything stays inside your limits: her own movement limits in the settings, an
 
 ## Your library (off by default)
 
-With **Let her pick videos** on, she can put on scripted videos from your library: `[play intense]`, `[play came]` (what you finished to before), `[play new]`, `[play maplestar gentle]`… Matching uses the whole library, whatever its size. While a video plays, its script drives the device and she talks over it: when a hard part is coming, when it eases off.
+With **Let her pick videos** on, she can put on scripted videos from your library: `[play intense]`, `[play came]` (what you finished to before), `[play new]`, `[play maplestar gentle]`… Matching uses the whole library, whatever its size. While a video plays, its script drives the device and she talks over it: when a hard part is coming, when it eases off. While the video's own sound plays, she waits twice as long before breaking a silence.
 
 **Let her see the video** (experimental, off by default) lets you show her the screen with the camera button, or let her turns carry a snapshot. It needs a brain that takes images (abliteration's `abliterated-model-large-flash` does).
 
@@ -47,6 +49,10 @@ With **Let her pick videos** on, she can put on scripted videos from your librar
 ## Characters
 
 Two out of the box, the same character in two languages: **Maki (EN)** and **Маки** (Russian). Edit them in the panel under **Prompts**, add your own, and give each a voice and a language. The main prompt (shared by all characters) is editable too. The technical rules (tags, format) are separate and fixed, so editing the text can't break them.
+
+## Achievements
+
+A few of her own, in playhound's **Stats → Achievements**: your first session, talking to her out loud, her first pick from your library, ten edges, and a session she leads to the end.
 
 ## Build
 
